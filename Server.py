@@ -18,6 +18,19 @@ def map(n, start1, end1, start2, end2):
 
 pyautogui.PAUSE = 0
 
+def getScrollLabel(value):
+    if value <= -2:
+        return "<<"
+    elif value <= -1:
+        return "<"
+    elif value <= 0:
+        return " "
+    elif value <= 1:
+        return ">"
+    elif value <= 2:
+        return ">>"
+    return " "
+
 class web_socket_handler(ws.WebSocketHandler):
     '''
     This class handles the websocket channel
@@ -44,29 +57,60 @@ class web_socket_handler(ws.WebSocketHandler):
         '''
             Message received on the handler
         '''
+        # print("Got message " + message)
+        # points = message.split(",")
+        if message.startswith("UPDATE"):
+            points = message.split(":")
+            py = int(float(points[1]))
+            px = int(float(points[2]))
+            sx = map(py, 100, self.phone_max_y, 0, self.screen_x)
+            sy = map(px, self.phone_max_x, 0, 0, self.screen_y)
+            print("PX {} PY {}".format(px, py))
+            print("SX {} SY {}".format(sx, sy))
+            pyautogui.moveTo(sx, sy)
+
+        elif message == "LEFTCLICK":
+            pyautogui.leftClick()
+        elif message == "RIGHTCLICK":
+            pyautogui.rightClick()
+        elif message.startswith("DBL"):
+            if message == "DBL_LEFTCLICK":
+                pyautogui.leftClick()
+                pyautogui.leftClick()
+            elif message == "DBL_RIGHTCLICK":
+                pyautogui.rightClick()
+                pyautogui.rightClick()
         
-        points = message.split(",")
-        if len(points) == 2 and message[:3].isnumeric():
-            x = int(float(points[0]))
-            y = int(float(points[1]))
-            # if self.phone_max_y != -1 and self.phone_max_x != -1:
-            fx = map(x, 0, self.phone_max_x, 0, self.screen_x)
-            fy = map(y, 0, self.phone_max_y, 0, self.screen_y)
-            pyautogui.moveTo(fx, fy)
-            # pyautogui.moveRel(fx, fy)
+        
+        elif message.startswith("LONG"):
+            # print(message)
+            if message.startswith("LONG_PRESS_UPDATE"):
+                t = message.split(":")
+                newX = int(float(t[1]))
+                newY = int(float(t[2]))
+                sx = map(newY, 100, self.phone_max_y, 0, self.screen_x)
+                sy = map(newX, self.phone_max_x, 0, 0, self.screen_y)
+                pyautogui.moveTo(sx, sy)
+
+            elif message == "LONG_PRESS_START":
+                print("LONG Press Started")
+                pyautogui.mouseDown()
+
+            elif message == "LONG_PRESS_END":
+                print("Long Press Ended")
+                pyautogui.mouseUp()
 
         
-        if message == "CLICK":
-            pyautogui.click()
-        if message == "DBLCLICK":
-            pyautogui.doubleClick()
-        
-        
-        if message.startswith("PS:"): #Meaning Phone Screen
+        elif message.startswith("SCL_START"):
+            value = int(float(message.split(":")[1]))
+            print("START: " + getScrollLabel(value))
+            pyautogui.vscroll(value)
+       
+        elif message.startswith("PS:"): #Meaning Phone Screen
             size = message[3:].split(",")
             self.phone_max_x = int(float(size[0]))
             self.phone_max_y = int(float(size[1]))
-            return
+            
         
         # self.write_message("You said {}".format(message))
         # self.last = time.time()
@@ -90,6 +134,7 @@ def initiate_server():
     server.listen(options.port)
     
     #start io/event loop
+    print("Server has started")
     tornado.ioloop.IOLoop.instance().start()
 
 

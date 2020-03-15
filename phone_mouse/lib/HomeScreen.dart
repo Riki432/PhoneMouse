@@ -83,15 +83,14 @@ class _HomePageState extends State<HomePage> {
                 //   )
                 // );
 
-                final socket = IOWebSocketChannel.connect("ws://${ip.text}:4041");
+                IOWebSocketChannel socket = IOWebSocketChannel.connect("ws://${ip.text}:4041");
                 // setState(() {
                 // //   connectionColor = Colors.green;
                 // // });
                 socket.sink.add("Connected to client!");
-                socket.sink.add("PS:${MediaQuery.of(context).size.width},${MediaQuery.of(context).size.height}");
+                
                 // // Navigator.of(context).pop();
-                Navigator.pushReplacement(
-                  context, 
+                Navigator.of(context).push( 
                   MaterialPageRoute(builder: (context) => MousePad(socket: socket)
                 ));
               },
