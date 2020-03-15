@@ -9,6 +9,11 @@ import tornado.ioloop
 import tornado.websocket as ws
 from tornado.options import define, options
 import time
+import asyncio
+import sys
+
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 # import math
 
 define('port', default=4041, help='port to listen on')
@@ -40,7 +45,7 @@ class web_socket_handler(ws.WebSocketHandler):
         return [(r'/',cls, {}),]
     
     def simple_init(self):
-        self.last = time.time()
+        # self.last = time.time()
         self.stop = False
         self.screen_x, self.screen_y = pyautogui.size() 
         self.phone_max_x, self.phone_max_y = -1, -1
@@ -65,8 +70,8 @@ class web_socket_handler(ws.WebSocketHandler):
             px = int(float(points[2]))
             sx = map(py, 100, self.phone_max_y, 0, self.screen_x)
             sy = map(px, self.phone_max_x, 0, 0, self.screen_y)
-            print("PX {} PY {}".format(px, py))
-            print("SX {} SY {}".format(sx, sy))
+            # print("PX {} PY {}".format(px, py))
+            # print("SX {} SY {}".format(sx, sy))
             pyautogui.moveTo(sx, sy)
 
         elif message == "LEFTCLICK":
